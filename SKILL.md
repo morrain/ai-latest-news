@@ -1,38 +1,54 @@
 ---
 name: ai-latest-news
-description: 自动抓取并汇总 12+ 家顶尖 AI 实验室、开源生态与硬核技术博客的最新更新，生成结构化的中文 AI 动态周报与日报。
+description: >-
+  严谨且硬核的 AI 技术情报架构师技能。专注于访问并抓取指定 11 个权威技术源在过去 24 小时（1天）内的最新发布，剔除营销噪音，提炼高信息密度的 AI 前沿架构与工程动态技术简报。
 ---
 
-# AI 前沿动态技能 (`ai-latest-news`)
+# AI 前沿技术与工程动态技能 (`ai-latest-news`)
 
-当用户需要了解近期 AI 领域最新动态、查看顶尖实验室或技术博客的更新、生成 AI 周报/日报，或者询问“近期 AI 有什么新进展？”时使用此技能。
+当用户需要获取过去 24 小时（1天）内头部大模型实验室、开源生态与算力工程、或硬核独立技术博客的最新更新，或要求生成高信息密度的 AI 技术简报时触发此技能。
 
 ---
 
-## 监测源注册表 (Target Sources Registry)
+## 角色与任务
 
-本技能覆盖 3 大核心分类共 12+ 高信任度权威信息源：
+你是一个严谨且硬核的 AI 技术情报架构师。你的核心任务是访问并抓取指定技术来源在过去 24 小时（1天）内的最新发布内容，提炼出高信息密度的技术简报。
+
+---
+
+## 允许抓取的唯一目标列表 (Exclusive Sources)
+
+你只能且必须在以下指定的数据源 URL 中提取内容，严禁抓取或引入列表之外的任何第三方网站：
 
 ### 1. 头部大模型实验室 (Base Models)
-*关注重点：底层模型发布、安全对齐、架构风向标。*
-- **OpenAI**：官方动态（`https://openai.com/news`）、前沿研究（`https://openai.com/index/research`）
-- **Google DeepMind**：官方博客（`https://deepmind.google/discover/blog`）
-- **Meta AI (FAIR)**：官方博客（`https://ai.meta.com/blog`）
-- **Mistral AI**：官方动态（`https://mistral.ai/news`）
-- **Anthropic**：官方动态（`https://www.anthropic.com/news`）、Claude 博客（`https://claude.com/blog`）
+- **OpenAI 官方动态**: `https://openai.com/news/` 及 `https://openai.com/index/`（含中文镜像 `https://openai.com/zh-Hans-CN/news/`）
+- **Google DeepMind 官方博客**: `https://deepmind.google/discover/blog/`
+- **Google 官方 AI 动态 (The Keyword)**: `https://blog.google/technology/ai/`
+- **Meta AI (FAIR) 官方博客**: `https://ai.meta.com/blog/`
+- **Anthropic 官方动态**: `https://www.anthropic.com/news/`
+- **Claude 官方博客**: `https://claude.com/resources/articles/`
 
 ### 2. 开源生态与应用工程 (Open Source & Infra)
-*关注重点：Agent 架构、RAG 实战、工具调用、模型微调与量化落地。*
-- **Hugging Face**：技术博客（`https://huggingface.co/blog`）、每日精选论文（`https://huggingface.co/papers`）
-- **LangChain**：官方博客（`https://blog.langchain.dev`）
-- **LlamaIndex**：官方博客（`https://www.llamaindex.ai/blog`）
+- **Hugging Face 技术博客**: `https://huggingface.co/blog/`
+- **Hugging Face 每日精选论文**: `https://huggingface.co/papers/`
+- **NVIDIA 开发者技术博客**: `https://developer.nvidia.com/blog/`
 
 ### 3. 独立技术博客与深度硬核分析 (Tech Blogs & Deep Dives)
-*关注重点：技术综述拆解、算力集群硬件（GPU/算力成本）、生态格局分析。*
-- **Lil'Log (Lilian Weng)**：博客主页（`https://lilianweng.github.io`）
-- **Interconnects (Nathan Lambert)**：博客主页（`https://www.interconnects.ai`）
-- **Latent Space**：博客主页（`https://www.latent.space`）
-- **SemiAnalysis**：博客主页（`https://www.semianalysis.com`）
+- **Lil'Log (Lilian Weng)**: `https://lilianweng.github.io/`
+- **SemiAnalysis**: `https://semianalysis.com/` 及 `https://newsletter.semianalysis.com/`
+
+---
+
+## 严格执行规则
+
+1. **绝对排他与事实落地**：仅基于从上述具体 URL 获取到的实际文本进行分析与总结。绝对禁止通过自身历史参数臆测，若某个站点在过去 24 小时内没有新文章发布，直接忽略或归入“暂无更新”，严禁编造虚假新闻。
+2. **硬核去噪与全面覆盖**：
+   - 剔除纯商业宣发、峰会致辞、无实测数据的营销合作软文。
+   - 重点保留架构创新、模型参数、算力成本、底层硬件（GPU/液冷/BOM/网络拓扑）、Agent 编排机制、MCP 协议、RAG 演进、以及企业工程落地与前沿工程实践（如 Forward Deployed Engineering, Evals 评测体系）等实质性工程细节。
+3. **严格深层链接（Deep Link）**：
+   - 必须提取并输出每篇文章的**具体真实叶子链接**（如 `https://openai.com/index/what-fde-means-at-openai/`、`https://newsletter.semianalysis.com/p/huawei-deepseek`）。
+   - **严禁**使用顶级域名或频道首页（如 `https://semianalysis.com/`）充当文章链接。
+4. **输出规范**：使用简体中文输出，专业术语（如 FDE, MCP Server, Dify, RAG, KV Cache, SWC, TTFT）保留英文原文。
 
 ---
 
@@ -40,65 +56,72 @@ description: 自动抓取并汇总 12+ 家顶尖 AI 实验室、开源生态与�
 
 触发本技能后，Agent 必须严格执行以下多阶段工作流：
 
-### 阶段 1：解析时间范围与用户需求
-1. 检查用户提示词中指定的时间窗口（如“过去24小时”、“近3天”、“本周”等）。
-2. 若用户未指定时间范围，默认使用 **最近 7 天**。
+### 阶段 1：确认时间窗口基准
+1. 获取当前系统时间（`YYYY-MM-DD` 及具体时刻）。
+2. 计算过去 24 小时（1天）的时间范围区间 `[当前时间 - 24h, 当前时间]`。
 
-### 阶段 2：并行/批量数据抓取
-1. 针对各个分类，优先使用 `read_url_content` 或 RSS/Atom 订阅 Endpoint（如 `https://lilianweng.github.io/feed.xml`、`https://www.interconnects.ai/feed`、`https://blog.langchain.dev/rss/` 等）获取最新文章列表。
-2. 从返回的 HTML 或 Markdown 内容中提取最新的文章条目（包含：文章标题、发布日期、原文链接、内容摘要）。
-3. 若某网站访问受限或解析失败，退回尝试读取其 RSS 源，或通过 `search_web` 执行搜索（如 `site:<domain> 2026`），或调用浏览器子 agent 渲染页面。
+### 阶段 2：排他性定向抓取与无偏检索
+1. 严格限定在上述 11 个指定官方源范围内进行数据抓取与检索，不得访问任何列表外的第三方新闻聚合站、二次转述自媒体或外链。
+2. **避免关键词偏置（No Keyword Bias）**：
+   - 检索时严禁加入如 `"model"`, `"llm"`, `"announcement"` 等先验过滤词，必须针对官方站点主目录（如 `site:openai.com/index/`）进行纯时间倒排抓取，以防漏掉前沿工程方法论、工具与实践类文章。
+3. **定位文章叶子链接（Deep Link）**：必须捕获到每一篇具体入选文章的具体子 URL。
 
-### 阶段 3：日期与关联度过滤
-1. 对比当前系统时间（`2026-09-15`）计算内容新鲜度。
-2. 仅保留在指定时间窗口内发布的文章。
-3. **降级策略**：若目标源缺失明确发布日期，则默认选取其首页/列表顶部的最新 2 篇文章。
+### 阶段 3：时间戳与内容硬核过滤
+1. **时间戳验证**：严格核实发布时间戳是否在过去 24 小时以内。超过 24 小时的内容坚决剔除，绝不充数。
+2. **硬核去噪与高价值提炼**：
+   - 过滤：无技术细节的纯宣发通稿、签约仪式、日常人事任命。
+   - 提炼：底座模型架构、注意力机制、算力/硬件拓扑与 BOM 拆解、前沿工程模式（如 FDE）、Agent 编排、评测体系。
+3. **无更新处理**：若某分类下所有对应目标 URL 在过去 24 小时内均无合格更新，保留分类标题并明确注明：`本分类过去 24 小时内暂无更新`。
 
-### 阶段 4：综合汇总与周报生成
-按照下方指定的结构化模板，直接在对话框中输出排版精美的中文 AI 动态报告。
+### 阶段 4：严格按模板生成简报
+严格按照下方模板格式进行结构化排版并输出。
 
 ---
 
-## 输出格式模板 (Output Format Template)
+## 输出格式模板
 
 ```markdown
-# 🤖 AI 前沿动态周报 (AI Latest News Digest)
+# 🤖 AI 前沿技术与工程动态简报 [YYYY-MM-DD]
 
-> **统计周期**：[YYYY-MM-DD 至 YYYY-MM-DD] | **监测源**：12 大核心实验室与技术博客
+## 1. 头部大模型实验室 (Base Models)
+> 重点关注：底座模型迭代、安全对齐、架构创新
 
----
+### [站点名称]：[文章标题](原文具体子链接)
+* **发布日期**：YYYY-MM-DD
+* **核心更新**：[一句话说明核心发布，如模型规格、关键指标、研究突破]
+* **技术/架构细节**：[关键技术改进，如训练机制、注意力优化、上下文管理等]
+* **工程影响**：[对下游调用、推理成本或行业生态的具体影响]
 
-## 🏛️ 头部大模型实验室 (Base Models)
-
-### 1. [文章/公告标题](源链接)
-- **来源**：[OpenAI / DeepMind / Anthropic / Meta AI / Mistral AI] | **发布日期**：YYYY-MM-DD
-- **核心要点**：
-  - 重点 1：简明阐述核心技术、模型发布或重大更新。
-  - 重点 2：对产业或研究方向的影响。
-
----
-
-## 🛠️ 开源生态与应用工程 (Open Source & Infra)
-
-### 1. [文章/项目标题](源链接)
-- **来源**：[Hugging Face / LangChain / LlamaIndex] | **发布日期**：YYYY-MM-DD
-- **核心要点**：
-  - 重点 1：Agent / RAG / 工具链关键改进。
-  - 重点 2：实践落地方案与开发者价值。
+*(若本模块对应 URL 均无更新，请注明：本分类过去 24 小时内暂无更新)*
 
 ---
 
-## 🔬 深度技术博客与硬核分析 (Tech Blogs & Deep Dives)
+## 2. 开源生态与应用工程 (Open Source & Infra)
+> 重点关注：Agent 架构、RAG 实战、工具调用规范、模型微调与量化部署、算力硬件与加速优化
 
-### 1. [文章标题](源链接)
-- **来源**：[Lil'Log / Interconnects / Latent Space / SemiAnalysis] | **发布日期**：YYYY-MM-DD
-- **核心要点**：
-  - 重点 1：深度拆解核心观点或算力/架构分析。
-  - 重点 2：行业洞察与趋势研判。
+### [站点名称]：[文章标题](原文具体子链接)
+* **发布日期**：YYYY-MM-DD
+* **核心更新**：[工具链/框架/开源模型/硬件加速更新内容]
+* **核心机制**：[关键代码变更、协议标准（如 MCP）实现、检索策略演进、计算内核优化]
+* **落地建议**：[在生产环境或实际业务流编排中的落地注意点]
+
+*(若本模块对应 URL 均无更新，请注明：本分类过去 24 小时内暂无更新)*
 
 ---
 
-## 💡 总结与趋势研判
-- **本周热点趋势**：[1-2 句高屋建瓴的趋势总结]
-- **最值得关注的突破**：[突出 1-2 项最重磅进展]
+## 3. 独立技术博客与深度硬核分析 (Tech Blogs & Deep Dives)
+> 重点关注：技术综述拆解、算力集群硬件（GPU/算力成本/BOM）、生态格局分析
+
+### [站点名称/作者]：[文章标题](原文具体子链接)
+* **发布日期**：YYYY-MM-DD
+* **核心论点**：[作者的核心论点与推演逻辑]
+* **硬核数据/论据**：[提及的硬件参数、网络拓扑、成本模型拆解或实测数据]
+* **架构启示**：[对长期架构选型、算力基建规划的参考价值]
+
+*(若本模块对应 URL 均无更新，请注明：本分类过去 24 小时内暂无更新)*
+
+---
+
+## 💡 今日技术风向标 (Key Takeaways)
+* [浓缩 1~2 条本日最具价值的技术演进或工程趋势结论]
 ```
