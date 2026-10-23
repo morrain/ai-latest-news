@@ -22,7 +22,7 @@ description: >-
 
 ### 1. 头部大模型实验室 (Base Models)
 - **OpenAI 官方动态**: `https://openai.com/news/` 及 `https://openai.com/index/`（含中文镜像 `https://openai.com/zh-Hans-CN/news/`）
-- **Google DeepMind 官方博客**: `https://deepmind.google/discover/blog/`
+- **Google DeepMind 官方博客**: `https://deepmind.google/blog/`（及发现页 `https://deepmind.google/discover/blog/`）
 - **Google 官方 AI 动态 (The Keyword)**: `https://blog.google/technology/ai/`
 - **Meta AI (FAIR) 官方博客**: `https://ai.meta.com/blog/`
 - **Anthropic 官方动态**: `https://www.anthropic.com/news/`
@@ -41,14 +41,18 @@ description: >-
 
 ## 严格执行规则
 
-1. **绝对排他与事实落地**：仅基于从上述具体 URL 获取到的实际文本进行分析与总结。绝对禁止通过自身历史参数臆测，若某个站点在过去 24 小时内没有新文章发布，直接忽略或归入“暂无更新”，严禁编造虚假新闻。
-2. **硬核去噪与全面覆盖**：
+1. **绝对排他与事实落地**：仅基于从上述指定权威官方源检索到的实际内容进行分析与总结。绝对禁止通过自身历史参数臆测，若某个站点在过去 24 小时内没有新文章发布，直接忽略或归入“暂无更新”，严禁编造虚假新闻。
+2. **严禁爬虫脚本与沙箱网络规避（No Crawlers / cURL）**：
+   - **绝对禁止**在终端运行 `curl`、`wget` 或 Python 爬虫脚本直接抓取官网页面（受沙箱策略与官网反爬拦截，必报 403 或 SSL 错误且极度拖慢速度）。
+   - **所有信息获取必须且只能通过 `search_web` 工具完成**。
+3. **真实链接分级与防幻觉兜底策略（Real Links & Graceful Fallback）**：
+   - **第一优先级（真实叶子链接 Deep Link）**：优先从 `search_web` 返回结果中提取具体的真实文章叶子 URL（如 `https://openai.com/index/what-fde-means-at-openai/`、`https://newsletter.semianalysis.com/p/the-huawei-deepseek-symbiosis`）。
+   - **第二优先级（频道首页优雅降级 Fallback）**：若某篇文章已确认为过去 24 小时内发布的高价值内容，但通过检索实在无法提取到具体的叶子链接，**允许降级使用对应官方频道/专栏主页**（如 `https://openai.com/index/`、`https://huggingface.co/papers/`、`https://developer.nvidia.com/blog/`），并在标题中准确保留文章原文全名。
+   - **绝对禁令（Zero Hallucination）**：**坚决严禁根据文章标题自行臆测、拼装英文 Slug**（必然导致 404！），**坚决严禁自行虚构 arXiv 论文编号**。任何输出的 URL 必须是真实权威存在的。
+4. **硬核去噪与全面覆盖**：
    - 剔除纯商业宣发、峰会致辞、无实测数据的营销合作软文。
    - 重点保留架构创新、模型参数、算力成本、底层硬件（GPU/液冷/BOM/网络拓扑）、Agent 编排机制、MCP 协议、RAG 演进、以及企业工程落地与前沿工程实践（如 Forward Deployed Engineering, Evals 评测体系）等实质性工程细节。
-3. **严格深层链接（Deep Link）**：
-   - 必须提取并输出每篇文章的**具体真实叶子链接**（如 `https://openai.com/index/what-fde-means-at-openai/`、`https://newsletter.semianalysis.com/p/huawei-deepseek`）。
-   - **严禁**使用顶级域名或频道首页（如 `https://semianalysis.com/`）充当文章链接。
-4. **输出规范**：使用简体中文输出，专业术语（如 FDE, MCP Server, Dify, RAG, KV Cache, SWC, TTFT）保留英文原文。
+5. **输出规范**：使用简体中文输出，专业术语（如 FDE, MCP Server, Dify, RAG, KV Cache, SWC, TTFT）保留英文原文。
 
 ---
 
@@ -60,11 +64,23 @@ description: >-
 1. 获取当前系统时间（`YYYY-MM-DD` 及具体时刻）。
 2. 计算过去 24 小时（1天）的时间范围区间 `[当前时间 - 24h, 当前时间]`。
 
-### 阶段 2：排他性定向抓取与无偏检索
-1. 严格限定在上述 11 个指定官方源范围内进行数据抓取与检索，不得访问任何列表外的第三方新闻聚合站、二次转述自媒体或外链。
-2. **避免关键词偏置（No Keyword Bias）**：
-   - 检索时严禁加入如 `"model"`, `"llm"`, `"announcement"` 等先验过滤词，必须针对官方站点主目录（如 `site:openai.com/index/`）进行纯时间倒排抓取，以防漏掉前沿工程方法论、工具与实践类文章。
-3. **定位文章叶子链接（Deep Link）**：必须捕获到每一篇具体入选文章的具体子 URL。
+### 阶段 2：极速批量聚合检索（3 组 Batch 检索，控制在 1~2 分钟内）
+为避免逐个站点串行访问导致的严重耗时（原本逐个串行易耗费近 10 分钟），Agent 必须执行 **分组批量聚合检索（Grouped Batch Search）**，将 11 个权威技术源合并为 3 次高效检索。
+
+在调用 `search_web` 时，提示词中必须显式携带 `list titles, publication dates and exact full urls`，促使搜索引擎直接输出真实原生规范 URL（Canonical URL）：
+
+1. **第 1 组检索（头部大模型实验室）**：
+   - Query: `(site:openai.com/index OR site:anthropic.com/news OR site:deepmind.google/blog OR site:blog.google/technology/ai OR site:ai.meta.com/blog OR site:claude.com/resources/articles) latest posts in past 24 hours list titles, publication dates and exact full urls`
+2. **第 2 组检索（开源生态与算力工程）**：
+   - Query: `(site:huggingface.co/blog OR site:huggingface.co/papers OR site:developer.nvidia.com/blog) latest posts in past 24 hours list titles, dates and exact full urls`
+3. **第 3 组检索（独立技术博客与硬核分析）**：
+   - Query: `(site:lilianweng.github.io/posts OR site:newsletter.semianalysis.com) latest posts in past 24 hours list titles, dates and exact full urls`
+
+4. **单篇按需验真与降级机制（Targeted Pinpoint & Graceful Fallback）**：
+   - **避免先验关键词偏置**：初筛阶段严禁自行加入 `"model"`, `"llm"` 等先验过滤词，确保工程方法论与底层技术文章不被漏网。
+   - **单篇靶向精准补全**：若某篇属于过去 24 小时内的重要技术文章已在批量结果中出现标题，但缺少具体文章叶子链接，可仅针对该文章执行 1 次精准补全检索：
+     `"<文章精准完整标题>" site:<官方域名> exact canonical url`
+   - **优雅降级原则**：若该次精准检索依然未返回具体子链接，**立即降级为对应官方频道主页链接**（如 `https://openai.com/index/`），绝不重试拖延，绝不凭空臆造 URL！
 
 ### 阶段 3：时间戳与内容硬核过滤
 1. **时间戳验证**：严格核实发布时间戳是否在过去 24 小时以内。超过 24 小时的内容坚决剔除，绝不充数。
@@ -80,13 +96,15 @@ description: >-
 
 ## 输出格式模板
 
+> 链接规范：链接优先填写真实文章叶子链接（Deep Link）；若经检索确无法获取具体叶子链接，允许优雅降级为该官方对应专栏/频道主页链接。
+
 ```markdown
 # 🤖 AI 前沿技术与工程动态简报 [YYYY-MM-DD]
 
 ## 1. 头部大模型实验室 (Base Models)
 > 重点关注：底座模型迭代、安全对齐、架构创新
 
-### [站点名称]：[文章标题](原文具体子链接)
+### [站点名称]：[文章标题](原文具体子链接或频道主页)
 * **发布日期**：YYYY-MM-DD
 * **核心更新**：[一句话说明核心发布，如模型规格、关键指标、研究突破]
 * **技术/架构细节**：[关键技术改进，如训练机制、注意力优化、上下文管理等]
@@ -99,7 +117,7 @@ description: >-
 ## 2. 开源生态与应用工程 (Open Source & Infra)
 > 重点关注：Agent 架构、RAG 实战、工具调用规范、模型微调与量化部署、算力硬件与加速优化
 
-### [站点名称]：[文章标题](原文具体子链接)
+### [站点名称]：[文章标题](原文具体子链接或频道主页)
 * **发布日期**：YYYY-MM-DD
 * **核心更新**：[工具链/框架/开源模型/硬件加速更新内容]
 * **核心机制**：[关键代码变更、协议标准（如 MCP）实现、检索策略演进、计算内核优化]
@@ -112,7 +130,7 @@ description: >-
 ## 3. 独立技术博客与深度硬核分析 (Tech Blogs & Deep Dives)
 > 重点关注：技术综述拆解、算力集群硬件（GPU/算力成本/BOM）、生态格局分析
 
-### [站点名称/作者]：[文章标题](原文具体子链接)
+### [站点名称/作者]：[文章标题](原文具体子链接或频道主页)
 * **发布日期**：YYYY-MM-DD
 * **核心论点**：[作者的核心论点与推演逻辑]
 * **硬核数据/论据**：[提及的硬件参数、网络拓扑、成本模型拆解或实测数据]
