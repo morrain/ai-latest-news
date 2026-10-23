@@ -21,8 +21,8 @@ description: >-
 你只能且必须在以下指定的数据源 URL 中提取内容，严禁抓取或引入列表之外的任何第三方网站：
 
 ### 1. 头部大模型实验室 (Base Models)
-- **OpenAI 官方动态**: `https://openai.com/news/` 及 `https://openai.com/index/`（含中文镜像 `https://openai.com/zh-Hans-CN/news/`）
-- **Google DeepMind 官方博客**: `https://deepmind.google/blog/`（及发现页 `https://deepmind.google/discover/blog/`）
+- **OpenAI 官方动态**: `https://openai.com/zh-Hans-CN/news/`
+- **Google DeepMind 官方博客**: `https://deepmind.google/blog/`
 - **Google 官方 AI 动态 (The Keyword)**: `https://blog.google/technology/ai/`
 - **Meta AI (FAIR) 官方博客**: `https://ai.meta.com/blog/`
 - **Anthropic 官方动态**: `https://www.anthropic.com/news/`
@@ -47,7 +47,7 @@ description: >-
    - **所有信息获取必须且只能通过 `search_web` 工具完成**。
 3. **真实链接分级与防幻觉兜底策略（Real Links & Graceful Fallback）**：
    - **第一优先级（真实叶子链接 Deep Link）**：优先从 `search_web` 返回结果中提取具体的真实文章叶子 URL（如 `https://openai.com/index/what-fde-means-at-openai/`、`https://newsletter.semianalysis.com/p/the-huawei-deepseek-symbiosis`）。
-   - **第二优先级（频道首页优雅降级 Fallback）**：若某篇文章已确认为过去 24 小时内发布的高价值内容，但通过检索实在无法提取到具体的叶子链接，**允许降级使用对应官方频道/专栏主页**（如 `https://openai.com/index/`、`https://huggingface.co/papers/`、`https://developer.nvidia.com/blog/`），并在标题中准确保留文章原文全名。
+   - **第二优先级（频道首页优雅降级 Fallback）**：若某篇文章已确认为过去 24 小时内发布的高价值内容，但通过检索实在无法提取到具体的叶子链接，**允许降级使用对应官方频道/专栏主页**（如 `https://openai.com/zh-Hans-CN/news/`、`https://huggingface.co/papers/`、`https://developer.nvidia.com/blog/`），并在标题中准确保留文章原文全名。
    - **绝对禁令（Zero Hallucination）**：**坚决严禁根据文章标题自行臆测、拼装英文 Slug**（必然导致 404！），**坚决严禁自行虚构 arXiv 论文编号**。任何输出的 URL 必须是真实权威存在的。
 4. **硬核去噪与全面覆盖**：
    - 剔除纯商业宣发、峰会致辞、无实测数据的营销合作软文。
@@ -70,7 +70,7 @@ description: >-
 在调用 `search_web` 时，提示词中必须显式携带 `list titles, publication dates and exact full urls`，促使搜索引擎直接输出真实原生规范 URL（Canonical URL）：
 
 1. **第 1 组检索（头部大模型实验室）**：
-   - Query: `(site:openai.com/index OR site:anthropic.com/news OR site:deepmind.google/blog OR site:blog.google/technology/ai OR site:ai.meta.com/blog OR site:claude.com/resources/articles) latest posts in past 24 hours list titles, publication dates and exact full urls`
+   - Query: `(site:openai.com/zh-Hans-CN/news OR site:anthropic.com/news OR site:deepmind.google/blog OR site:blog.google/technology/ai OR site:ai.meta.com/blog OR site:claude.com/resources/articles) latest posts in past 24 hours list titles, publication dates and exact full urls`
 2. **第 2 组检索（开源生态与算力工程）**：
    - Query: `(site:huggingface.co/blog OR site:huggingface.co/papers OR site:developer.nvidia.com/blog) latest posts in past 24 hours list titles, dates and exact full urls`
 3. **第 3 组检索（独立技术博客与硬核分析）**：
@@ -80,7 +80,7 @@ description: >-
    - **避免先验关键词偏置**：初筛阶段严禁自行加入 `"model"`, `"llm"` 等先验过滤词，确保工程方法论与底层技术文章不被漏网。
    - **单篇靶向精准补全**：若某篇属于过去 24 小时内的重要技术文章已在批量结果中出现标题，但缺少具体文章叶子链接，可仅针对该文章执行 1 次精准补全检索：
      `"<文章精准完整标题>" site:<官方域名> exact canonical url`
-   - **优雅降级原则**：若该次精准检索依然未返回具体子链接，**立即降级为对应官方频道主页链接**（如 `https://openai.com/index/`），绝不重试拖延，绝不凭空臆造 URL！
+   - **优雅降级原则**：若该次精准检索依然未返回具体子链接，**立即降级为对应官方频道主页链接**（如 `https://openai.com/zh-Hans-CN/news/`），绝不重试拖延，绝不凭空臆造 URL！
 
 ### 阶段 3：时间戳与内容硬核过滤
 1. **时间戳验证**：严格核实发布时间戳是否在过去 24 小时以内。超过 24 小时的内容坚决剔除，绝不充数。
